@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Space Shooter Emoji</title>
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div id="menu">
+  <h1>🚀 Space Shooter</h1>
+  <button onclick="startGame()">START GAME</button>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="gameOverUI" class="hidden">
+  <h2>GAME OVER</h2>
+  <button onclick="restartGame()">RESTART</button>
+</div>
+
+<!-- SOUND -->
+<audio id="shootSound" preload="auto">
+  <source src="https://assets.mixkit.co/sfx/preview/mixkit-laser-weapon-shot-1681.mp3">
+</audio>
+
+<audio id="boomSound" preload="auto">
+  <source src="https://assets.mixkit.co/sfx/preview/mixkit-explosion-impact-1684.mp3">
+</audio>
+
+<script src="script.js"></script>
+
+</body>
+</html>
