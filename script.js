@@ -144,7 +144,7 @@ function gameLoop() {
   // BULLET
   bullets.forEach((b, i) => {
     b.y -= 6;
-    ctx.fillText("*", b.x, b.y);
+    ctx.fillText("🏐", b.x, b.y);
     if (b.y < 0) bullets.splice(i, 1);
   });
 
