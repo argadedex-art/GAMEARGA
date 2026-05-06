@@ -23,7 +23,7 @@ const skins = [
 
 let currentSkin = skins[0];
 
-// MUSUH
+// ENEMY
 const enemyTypes = [
   { emoji: "👾", speed: 2, hp: 1 },
   { emoji: "👽", speed: 3, hp: 1 },
@@ -36,10 +36,43 @@ let stars = Array.from({ length: 50 }, () => ({
   y: Math.random() * 600
 }));
 
+// 🔊 UNLOCK SOUND
+function unlockSound() {
+  shootSound.volume = 0.5;
+  boomSound.volume = 0.5;
+
+  shootSound.play().then(() => {
+    shootSound.pause();
+    shootSound.currentTime = 0;
+  }).catch(() => {});
+
+  boomSound.play().then(() => {
+    boomSound.pause();
+    boomSound.currentTime = 0;
+  }).catch(() => {});
+}
+
+function playShoot() {
+  try {
+    shootSound.currentTime = 0;
+    shootSound.play().catch(() => {});
+  } catch {}
+}
+
+function playBoom() {
+  try {
+    boomSound.currentTime = 0;
+    boomSound.play().catch(() => {});
+  } catch {}
+}
+
+// START GAME
 function startGame() {
   menu.style.display = "none";
   canvas.style.display = "block";
   gameOverUI.classList.add("hidden");
+
+  unlockSound();
 
   player = { x: 200, y: 520, hp: 3 };
   bullets = [];
@@ -55,11 +88,13 @@ function startGame() {
   gameLoop();
 }
 
+// RESTART
 function restartGame() {
   clearTimeout(shootTimeout);
   startGame();
 }
 
+// SKIN UPDATE
 function updateSkin() {
   currentSkin = skins[0];
   skins.forEach(s => {
@@ -67,20 +102,7 @@ function updateSkin() {
   });
 }
 
-function playShoot() {
-  try {
-    shootSound.currentTime = 0;
-    shootSound.play();
-  } catch {}
-}
-
-function playBoom() {
-  try {
-    boomSound.currentTime = 0;
-    boomSound.play();
-  } catch {}
-}
-
+// SHOOT LOOP
 function shootLoop() {
   if (!gameRunning) return;
 
@@ -90,6 +112,7 @@ function shootLoop() {
   shootTimeout = setTimeout(shootLoop, currentSkin.fireRate);
 }
 
+// CONTROL HP/PC
 canvas.addEventListener("mousemove", e => {
   let rect = canvas.getBoundingClientRect();
   player.x = Math.max(20, Math.min(380, e.clientX - rect.left));
@@ -100,7 +123,7 @@ canvas.addEventListener("touchmove", e => {
   player.x = Math.max(20, Math.min(380, e.touches[0].clientX - rect.left));
 });
 
-// spawn musuh
+// SPAWN ENEMY
 setInterval(() => {
   if (gameRunning && !boss) {
     let t = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
@@ -108,6 +131,7 @@ setInterval(() => {
   }
 }, 900);
 
+// GAME LOOP
 function gameLoop() {
   if (!gameRunning || !player) return;
 
@@ -125,10 +149,13 @@ function gameLoop() {
   ctx.font = "36px Arial";
   ctx.fillText(currentSkin.emoji, player.x, player.y);
 
-  // BULLET
+  // BULLET 🏐 FINAL
   bullets.forEach((b, i) => {
     b.y -= 6;
+
+    ctx.font = "26px Arial";
     ctx.fillText("🏐", b.x, b.y);
+
     if (b.y < 0) bullets.splice(i, 1);
   });
 
@@ -138,6 +165,7 @@ function gameLoop() {
     ctx.font = "28px Arial";
     ctx.fillText(e.emoji, e.x, e.y);
 
+    // HIT PLAYER
     if (Math.abs(e.x - player.x) < 25 && Math.abs(e.y - player.y) < 25) {
       enemies.splice(ei, 1);
       player.hp--;
@@ -145,6 +173,7 @@ function gameLoop() {
       if (player.hp <= 0) endGame();
     }
 
+    // HIT BULLET
     bullets.forEach((b, bi) => {
       if (Math.abs(b.x - e.x) < 20 && Math.abs(b.y - e.y) < 20) {
         bullets.splice(bi, 1);
@@ -164,7 +193,32 @@ function gameLoop() {
     });
   });
 
-  // PLAYER INFO
+  // BOSS
+  if (level >= 5 && !boss) {
+    boss = { x: 150, y: 60, hp: 40 };
+  }
+
+  if (boss) {
+    ctx.font = "60px Arial";
+    ctx.fillText("👹", boss.x, boss.y);
+
+    bullets.forEach((b, bi) => {
+      if (Math.abs(b.x - boss.x) < 40 && Math.abs(b.y - boss.y) < 40) {
+        bullets.splice(bi, 1);
+        boss.hp--;
+        playBoom();
+      }
+    });
+
+    if (boss.hp <= 0) {
+      boss = null;
+      score += 10;
+      level++;
+      updateSkin();
+    }
+  }
+
+  // UI
   ctx.fillStyle = "white";
   ctx.font = "16px Arial";
   ctx.fillText("Score: " + score, 10, 20);
@@ -174,6 +228,7 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+// GAME OVER
 function endGame() {
   gameRunning = false;
   clearTimeout(shootTimeout);
